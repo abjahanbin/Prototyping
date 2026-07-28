@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Camera Canvas Pipeline</title>
+<style>
+  body {
+    margin: 0;
+    background: #ffffff;
+    color: #111111;
+    font-family: system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+  }
+  canvas {
+    width: min(94vw, 1200px);
+    height: auto;
+    border-radius: 8px;
+    background: #000;
+    box-shadow: 0 0 0 1px #ddd;
+  }
+  video {
+    display: none; /* hidden source, canvas is what's shown */
+  }
+  button {
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    background: #111111;
+    color: #ffffff;
+    border: 1px solid #111111;
+    border-radius: 4px;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  #status {
+    color: #333333;
+    font-size: 0.9rem;
+  }
+  #expressions {
+    font-size: 0.9rem;
+    min-height: 1.2em;
+    text-align: center;
+    color: #111111;
+  }
+  #expressions b {
+    color: #0a6ebd;
+  }
+</style>
+</head>
+<body>
+
+<button id="startBtn">Start Camera</button>
+<div id="status">Camera not started.</div>
+<div id="expressions"></div>
+<canvas id="canvas"></canvas>
+<video id="video" playsinline autoplay muted></video>
+
+<script type="module" src="/script.js"></script>
+</body>
+</html>
