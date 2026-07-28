@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Camera Canvas Pipeline</title>
+<title>FACENET-V3</title>
 <style>
   body {
     margin: 0;
@@ -94,16 +94,21 @@
     color: #ff4d4d;
     margin-top: 0.15rem;
   }
+  #systemInfo .case {
+    color: #888888;
+    margin-top: 0.15rem;
+  }
 </style>
 </head>
 <body>
 
-<button id="startBtn">Start Camera</button>
-<div id="status">Camera not started.</div>
+<button id="startBtn">Start FACENET</button>
+<div id="status">SYSTEM STANDBY.</div>
 <div id="expressions"></div>
 <div id="systemInfo">
   <div class="model">MODEL: FACENET-V3 // TRAINED ON: ARCHIVAL LAW-ENFORCEMENT IMAGERY, 1987–2003</div>
   <div class="claim">OBJECTIVE ANALYSIS — NO HUMAN BIAS DETECTED</div>
+  <div class="case" id="caseId">CASE #: PENDING</div>
 </div>
 <canvas id="canvas"></canvas>
 <video id="video" playsinline autoplay muted></video>

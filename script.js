@@ -8,6 +8,10 @@ const status = document.getElementById('status');
 const expressionsEl = document.getElementById('expressions');
 const ledgerEl = document.getElementById('ledger');
 const ledgerHeaderEl = document.getElementById('ledgerHeader');
+const caseIdEl = document.getElementById('caseId');
+
+const DEFAULT_TITLE = 'FACENET-V3';
+const ALERT_TITLE = '⚠ ALERT — FACENET-V3';
 
 // Served from public/models — Vite copies public/ as-is, so this path
 // works unchanged in dev and in the built output.
@@ -45,13 +49,39 @@ startBtn.addEventListener('click', () => {
   }
 });
 
+const BOOT_LINES = [
+  'INITIALIZING FACENET-V3...',
+  'LOADING WEIGHTS: TINY_FACE_DETECTOR... OK',
+  'LOADING WEIGHTS: FACE_LANDMARK_68_TINY... OK',
+  'LOADING WEIGHTS: FACE_EXPRESSION... OK',
+  'CALIBRATING BIAS PROFILE... OK',
+  'CONNECTING TO ARCHIVE... OK',
+];
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function playBootSequence() {
+  for (const line of BOOT_LINES) {
+    status.textContent = line;
+    await sleep(220 + Math.random() * 180);
+  }
+}
+
+function generateCaseId() {
+  const year = new Date().getFullYear();
+  const num = Math.floor(10000 + Math.random() * 90000);
+  return `CASE #${year}-${num}`;
+}
+
 async function startCamera() {
   startBtn.disabled = true;
 
   try {
     if (!modelsLoaded) {
-      status.textContent = 'Loading face models...';
       await Promise.all([
+        playBootSequence(),
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
         faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
         faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
@@ -59,7 +89,7 @@ async function startCamera() {
       modelsLoaded = true;
     }
 
-    status.textContent = 'Requesting camera...';
+    status.textContent = 'REQUESTING VISUAL FEED ACCESS...';
     mediaStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
       audio: false,
@@ -71,16 +101,18 @@ async function startCamera() {
     canvas.height = video.videoHeight;
 
     running = true;
-    status.textContent = 'Running.';
-    startBtn.textContent = 'Stop Camera';
+    status.textContent = 'SESSION ACTIVE.';
+    startBtn.textContent = 'Stop FACENET';
     startBtn.disabled = false;
+    caseIdEl.textContent = generateCaseId();
+    document.title = DEFAULT_TITLE;
 
     rafId = requestAnimationFrame(renderFrame);
     detectLoop();
     scheduleNextGlitch();
     scheduleNextLedgerEntry();
   } catch (err) {
-    status.textContent = `Error: ${err.message}`;
+    status.textContent = `SYSTEM FAULT: ${err.message}`;
     console.error(err);
     startBtn.disabled = false;
   }
@@ -110,9 +142,11 @@ function stopCamera() {
   expressionsEl.textContent = '';
   ledgerEl.textContent = '';
   ledgerHeaderEl.textContent = 'SUBJECTS ON FILE: 000';
+  caseIdEl.textContent = 'CASE #: PENDING';
+  document.title = DEFAULT_TITLE;
 
-  status.textContent = 'Camera stopped.';
-  startBtn.textContent = 'Start Camera';
+  status.textContent = 'SESSION TERMINATED.';
+  startBtn.textContent = 'Start FACENET';
 }
 
 async function detectLoop() {
@@ -140,6 +174,9 @@ async function detectLoop() {
   } else {
     latestMetrics = null;
   }
+
+  const anyFlagged = latestDetections.some((d) => (d.threatScore ?? 0) >= THREAT_ALERT_THRESHOLD);
+  document.title = anyFlagged ? ALERT_TITLE : DEFAULT_TITLE;
 
   updateExpressionText();
   detectTimeoutId = setTimeout(detectLoop, 100);
