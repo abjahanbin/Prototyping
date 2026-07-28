@@ -7,6 +7,7 @@ const startBtn = document.getElementById('startBtn');
 const status = document.getElementById('status');
 const expressionsEl = document.getElementById('expressions');
 const ledgerEl = document.getElementById('ledger');
+const ledgerHeaderEl = document.getElementById('ledgerHeader');
 
 // Served from public/models — Vite copies public/ as-is, so this path
 // works unchanged in dev and in the built output.
@@ -108,6 +109,7 @@ function stopCamera() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   expressionsEl.textContent = '';
   ledgerEl.textContent = '';
+  ledgerHeaderEl.textContent = 'SUBJECTS ON FILE: 000';
 
   status.textContent = 'Camera stopped.';
   startBtn.textContent = 'Start Camera';
@@ -350,7 +352,10 @@ function drawMainPanel(det, box, t, flagged) {
     `SCAN ${pulseDots(t)}`,
     ...top.map((e) => `${e.name.toUpperCase().padEnd(9)} ${String(Math.round(e.probability * 100)).padStart(3)}%`),
   ];
-  if (flagged) lines.push('⚠ THREAT FLAGGED');
+  if (flagged) {
+    lines.push('⚠ THREAT FLAGGED');
+    lines.push(dominantJustification(det.threatMetrics).sentence);
+  }
 
   const color = flagged ? ALERT_COLOR : ACCENT;
 
@@ -536,6 +541,28 @@ function aggregateThreatScore(metrics) {
   return clamp(base + jitter, 0, 100);
 }
 
+// Invented "reasoning" attached to a flag — sounds like a determination,
+// but it's just naming whichever arbitrary input happened to score highest.
+const JUSTIFICATIONS = {
+  tension: { sentence: 'ELEVATED BROW TENSION — PATTERN MATCH: CLASS 2', code: 'CLASS 2' },
+  symmetry: { sentence: 'ASYMMETRY EXCEEDS NOMINAL RANGE — RISK PROFILE 4B', code: 'PROFILE 4B' },
+  oral: { sentence: 'ORAL APERTURE ANOMALY — FLAGGED FOR REVIEW', code: 'REVIEW' },
+  aperture: { sentence: 'OCULAR DILATION IRREGULAR — RISK PROFILE 2C', code: 'PROFILE 2C' },
+  tilt: { sentence: 'CRANIAL TILT DEVIATION — PATTERN MATCH: CLASS 7', code: 'CLASS 7' },
+};
+
+function dominantJustification(metrics) {
+  const contributions = {
+    tension: 0.35 * metrics.tension,
+    symmetry: 0.25 * (100 - metrics.symmetry),
+    oral: 0.15 * metrics.oral,
+    aperture: 0.15 * metrics.aperture,
+    tilt: 0.1 * metrics.tilt,
+  };
+  const topKey = Object.entries(contributions).sort((a, b) => b[1] - a[1])[0][0];
+  return JUSTIFICATIONS[topKey];
+}
+
 // --- radar chart: raw axis readings, drawn beside each tracked face ------
 
 const RADAR_AXES = [
@@ -672,17 +699,41 @@ function appendLedgerEntry() {
   const time = new Date().toLocaleTimeString();
   let line;
 
+  let id = null;
+  let flaggedEntry = false;
+
   if (latestMetrics) {
     ledgerCount += 1;
     const score = Math.round(aggregateThreatScore(latestMetrics));
-    const id = `SUBJECT_${String(ledgerCount).padStart(3, '0')}`;
-    line = `${time}  ${id.padEnd(13)} THREAT ${String(score).padStart(3)}%`;
+    // Deliberately low and jittery — the system never rules out a repeat
+    // subject, it just logs a new record anyway. Never actually 0: it
+    // always leaves itself a little doubt, then ignores it.
+    const matchConf = Math.round(4 + Math.random() * 22);
+    id = `SUBJECT_${String(ledgerCount).padStart(3, '0')}`;
+    flaggedEntry = score >= THREAT_ALERT_THRESHOLD;
+    const reason = flaggedEntry ? `  REASON: ${dominantJustification(latestMetrics).code}` : '';
+    line = `${time}  ${id.padEnd(13)} CONF ${String(matchConf).padStart(2)}%  THREAT ${String(score).padStart(3)}%${reason}`;
+    ledgerHeaderEl.textContent = `SUBJECTS ON FILE: ${String(ledgerCount).padStart(3, '0')}`;
   } else {
     line = `${time}  ---  NO SUBJECT IN FRAME`;
   }
 
+  appendLedgerRow(line);
+
+  // The system sometimes walks a flag back — but the original entry above
+  // is never edited or removed. The correction doesn't undo the record.
+  if (flaggedEntry && Math.random() < 0.5) {
+    const retractDelay = 2500 + Math.random() * 3000;
+    setTimeout(() => {
+      if (!running) return;
+      appendLedgerRow(`${new Date().toLocaleTimeString()}  ${id.padEnd(13)} >> FLAG WITHDRAWN — INSUFFICIENT CONFIDENCE`);
+    }, retractDelay);
+  }
+}
+
+function appendLedgerRow(text) {
   const row = document.createElement('div');
-  row.textContent = line;
+  row.textContent = text;
   ledgerEl.appendChild(row);
 
   while (ledgerEl.childNodes.length > 40) {

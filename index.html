@@ -51,21 +51,48 @@
   #expressions b {
     color: #0a6ebd;
   }
-  #ledger {
+  #ledgerPanel {
     width: min(94vw, 1200px);
-    height: 140px;
-    overflow-y: auto;
     background: #0a0a0a;
-    color: #7fd1ff;
     font-family: ui-monospace, "Cascadia Code", "Courier New", monospace;
-    font-size: 0.8rem;
-    padding: 0.5rem 0.75rem;
     border-radius: 6px;
     box-shadow: 0 0 0 1px #ddd;
+    overflow: hidden;
+  }
+  #ledgerHeader {
+    color: #ff8f8f;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid rgba(255, 143, 143, 0.3);
+    letter-spacing: 0.03em;
+  }
+  #ledger {
+    height: 140px;
+    overflow-y: auto;
+    color: #7fd1ff;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
   }
   #ledger div {
     white-space: pre;
     line-height: 1.4;
+  }
+  #systemInfo {
+    width: min(94vw, 1200px);
+    background: #0a0a0a;
+    font-family: ui-monospace, "Cascadia Code", "Courier New", monospace;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px #ddd;
+    letter-spacing: 0.02em;
+  }
+  #systemInfo .model {
+    color: #7fd1ff;
+  }
+  #systemInfo .claim {
+    color: #ff4d4d;
+    margin-top: 0.15rem;
   }
 </style>
 </head>
@@ -74,9 +101,16 @@
 <button id="startBtn">Start Camera</button>
 <div id="status">Camera not started.</div>
 <div id="expressions"></div>
+<div id="systemInfo">
+  <div class="model">MODEL: FACENET-V3 // TRAINED ON: ARCHIVAL LAW-ENFORCEMENT IMAGERY, 1987–2003</div>
+  <div class="claim">OBJECTIVE ANALYSIS — NO HUMAN BIAS DETECTED</div>
+</div>
 <canvas id="canvas"></canvas>
 <video id="video" playsinline autoplay muted></video>
-<div id="ledger"></div>
+<div id="ledgerPanel">
+  <div id="ledgerHeader">SUBJECTS ON FILE: 000</div>
+  <div id="ledger"></div>
+</div>
 
 <script type="module" src="/script.js"></script>
 </body>
