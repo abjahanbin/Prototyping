@@ -51,6 +51,22 @@
   #expressions b {
     color: #0a6ebd;
   }
+  #ledger {
+    width: min(94vw, 1200px);
+    height: 140px;
+    overflow-y: auto;
+    background: #0a0a0a;
+    color: #7fd1ff;
+    font-family: ui-monospace, "Cascadia Code", "Courier New", monospace;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px #ddd;
+  }
+  #ledger div {
+    white-space: pre;
+    line-height: 1.4;
+  }
 </style>
 </head>
 <body>
@@ -60,6 +76,7 @@
 <div id="expressions"></div>
 <canvas id="canvas"></canvas>
 <video id="video" playsinline autoplay muted></video>
+<div id="ledger"></div>
 
 <script type="module" src="/script.js"></script>
 </body>
